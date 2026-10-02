@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <title>momo歌单</title>
+    <style>
+        @font-face {
+            font-family: "tttgbnumber";
+            src: url("{{pluResPath}}/font/HYWH-85W.ttf");
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 840px;
+            position: relative;
+            padding: 30px;
+            background: {{bgcolor}};          /*  去掉引号 */
+            background-size: cover;
+            font-family: 'tttgbnumber', -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+            display: flex;
+            align-items: flex-start;         /*  改为 flex-start */
+            justify-content: center;
+            min-height: 100vh;               /*  添加最小高度 */
+        }
+
+        .container {
+            position: relative;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 34px;
+            padding: 28px 26px;
+            border: 1.5px solid rgba(255, 255, 255, 0.45);
+            box-shadow:
+                0 18px 50px rgba(70, 90, 160, 0.26),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(5px) saturate(135%);
+            -webkit-backdrop-filter: blur(5px) saturate(135%);
+        }
+
+        .head_box {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .head_box h1 {
+            font-size: 32px;
+            color: #34286b;
+            text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
+        }
+
+        .song-grid{
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        /* 果冻卡片 */
+        .card {
+            position: relative;
+            display: flex;
+            align-items: center;
+            border-radius: 22px;
+            padding: 13px 16px;
+            overflow: hidden;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.24));
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow:
+                0 10px 22px rgba(60, 80, 160, 0.16),
+                inset 0 1px 0 rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(3px) saturate(130%);
+            -webkit-backdrop-filter: blur(3px) saturate(130%);
+        }
+
+        /* 顶部高光，营造果冻反光 */
+        .card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 46%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0));
+            pointer-events: none;
+        }
+
+        .card .text {
+            position: relative;
+            margin-left: 14px;
+            min-width: 0;
+        }
+
+        .card .title {
+            font-size: 18px;
+            color: #34286b;
+            font-weight: bold;
+            margin-bottom: 4px;
+            word-break: break-all;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        .card .desc {
+            font-size: 13px;
+            color: #6a6190;
+            line-height: 1.4;
+            word-break: break-all;
+        }
+
+        .footer {
+            margin-top: 22px;
+            text-align: center;
+        }
+
+        .footer .credit {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #34286b;
+            text-shadow: 0 1px 4px rgba(234, 234, 235, 0.959);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="head_box">
+            <h1>momo歌单</h1>
+        </div>
+
+        <div class="song-grid">
+            {{each songList.list list}}
+            <div class="card">
+                <div class="text">
+                    <div class="title">{{list.title}}</div>
+                    <div class="desc">{{list.desc}}</div>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+
+        <div class="footer">
+            <div class="credit">Created By momo · momo最可爱！</div>
+        </div>
+    </div>
+</body>
+
+</html>

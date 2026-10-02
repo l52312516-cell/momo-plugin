@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <title>momo决斗结果</title>
+    <style>
+        @font-face {
+            font-family: "tttgbnumber";
+            src: url("{{pluResPath}}/font/HYWH-85W.ttf");
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 840px;
+            height: 520px;
+            position: relative;
+            padding: 30px;
+            /* 梦幻紫蓝粉渐变 + 可选背景图 */
+            background:
+                linear-gradient(160deg, rgb(56, 146, 249) 0%, rgba(154, 86, 244, 0.785) 40%, rgba(255, 166, 252, 0.799) 100%),
+                linear-gradient(135deg, #44a2ca 0%, #9f56f9 50%, #f0a7ee 100%);
+            background-size: cover;
+            font-family: 'tttgbnumber', -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 主卡片：果冻玻璃容器 */
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 34px;
+            padding: 28px 32px;
+            border: 1.5px solid rgba(255, 255, 255, 0.40);
+            box-shadow:
+                0 18px 50px rgba(40, 30, 80, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(6px) saturate(140%);
+            -webkit-backdrop-filter: blur(6px) saturate(140%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* 顶部高光 */
+        .container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 35%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.20), transparent);
+            pointer-events: none;
+            border-radius: 34px 34px 0 0;
+        }
+
+        /* 标题区 */
+        .head_box {
+            text-align: center;
+            margin-bottom: 18px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .head_box h1 {
+            font-size: 42px;
+            color: #ffffff;
+            letter-spacing: 3px;
+            text-shadow: 0 4px 14px rgba(233, 69, 96, 0.5);
+        }
+
+        .head_box .subtitle {
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 1px;
+            padding: 5px 16px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* 对战区域 */
+        .battle-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 50px;
+            width: 100%;
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 玩家卡片：果冻小卡片 */
+        .player {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 20px 28px;
+            border-radius: 24px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06));
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            box-shadow:
+                0 10px 28px rgba(40, 30, 80, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(4px) saturate(130%);
+            -webkit-backdrop-filter: blur(4px) saturate(130%);
+            min-width: 220px;
+        }
+
+        /* 玩家卡片顶部高光 */
+        .player::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 45%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.30), transparent);
+            pointer-events: none;
+            border-radius: 24px 24px 0 0;
+        }
+
+        /* 皇冠 */
+        .crown {
+            position: absolute;
+            top: -16px;
+            font-size: 28px;
+            z-index: 2;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        /* 头像气泡 */
+        .avatar-bubble {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(235, 230, 255, 0.7));
+            box-shadow:
+                0 6px 18px rgba(90, 70, 160, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            position: relative;
+            z-index: 1;
+        }
+
+        .avatar-bubble img {
+            width: 78px;
+            height: 78px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .winner .avatar-bubble {
+            border: 3px solid rgba(255, 215, 0, 0.6);
+            box-shadow:
+                0 0 20px rgba(255, 215, 0, 0.3),
+                0 6px 18px rgba(90, 70, 160, 0.3);
+        }
+
+        .loser .avatar-bubble {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* 玩家信息 */
+        .player-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffffff;
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .winner .player-name {
+            color: #ffe27a;
+        }
+
+        /* 比分 */
+        .score {
+            font-family: 'tttgbnumber', sans-serif;
+            font-size: 48px;
+            font-weight: bold;
+            position: relative;
+            z-index: 1;
+        }
+
+        .winner .score {
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .loser .score {
+            color: #e94560;
+            text-shadow: 0 0 15px rgba(233, 69, 96, 0.4);
+        }
+
+        /* 统计数据 */
+        .stats {
+            display: flex;
+            gap: 16px;
+            margin-top: 4px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-item {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .stat-item span {
+            font-family: 'tttgbnumber', sans-serif;
+            color: #019365;
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        /* VS 标识 */
+        .vs {
+            font-family: 'tttgbnumber', sans-serif;
+            font-size: 52px;
+            font-weight: bold;
+            color: #e94560;
+            text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 裁判 */
+        .referee {
+            margin-top: 16px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.65);
+            position: relative;
+            z-index: 1;
+        }
+
+        .referee span {
+            color: #ff0000;
+            font-weight: bold;
+        }
+
+        /* 底部装饰线 */
+        .footer-line {
+            position: absolute;
+            bottom: 0;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            z-index: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="head_box">
+            <h1> momo决斗结果 </h1>
+            <div class="subtitle">{{winnername}} 击败 {{losername}}</div>
+        </div>
+
+        <div class="battle-area">
+            <!-- 胜者 -->
+            <div class="player winner">
+                <div class="crown">👑</div>
+                <div class="avatar-bubble">
+                    <img src="https://q1.qlogo.cn/g?b=qq&nk={{winnerid}}&s=100" alt="winner">
+                </div>
+                <div class="player-name">{{winnername}}</div>
+                <div class="score">{{winnerscore}}</div>
+                <div class="stats">
+                    <div class="stat-item">胜率 <span>{{winnerwinrate}}%</span></div>
+                    <div class="stat-item">场次 <span>{{winnertotalmatch}}</span></div>
+                </div>
+            </div>
+
+            <!-- VS -->
+            <div class="vs">VS</div>
+
+            <!-- 败者 -->
+            <div class="player loser">
+                <div class="avatar-bubble">
+                    <img src="https://q1.qlogo.cn/g?b=qq&nk={{loserid}}&s=100" alt="loser">
+                </div>
+                <div class="player-name">{{losername}}</div>
+                <div class="score">{{loserscore}}</div>
+                <div class="stats">
+                    <div class="stat-item">胜率 <span>{{loserwinrate}}%</span></div>
+                    <div class="stat-item">场次 <span>{{losertotalmatch}}</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="referee"> 裁判: <span>{{refereeName}}</span></div>
+        <div class="footer-line"></div>
+    </div>
+</body>
+
+</html>
