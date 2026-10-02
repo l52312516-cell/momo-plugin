@@ -1,6 +1,6 @@
 {
   "name": "momo-plugin",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "TRSS-Yunzai 娱乐互动、歌曲、写作与作息插件",
   "type": "module",
   "private": true,

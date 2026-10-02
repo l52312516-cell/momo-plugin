@@ -1,4 +1,4 @@
-import { getHelpText } from '../model/registry.js'
+import { getHelpMessages } from '../model/registry.js'
 
 export class momoHelp extends plugin {
   constructor() {
@@ -9,7 +9,7 @@ export class momoHelp extends plugin {
   }
 
   async help(e) {
-    await e.reply(getHelpText())
+    await e.reply(Bot.makeForwardArray(getHelpMessages()))
     return true
   }
 }

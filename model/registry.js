@@ -42,21 +42,26 @@ export const modules = [
 let loaded = new Set()
 export function setLoadedModules(names) { loaded = new Set(names) }
 
-export function getHelpText() {
+export function getHelpMessages() {
   const config = getConfig()
   const items = modules.filter(m => loaded.has(m.name) && (!m.feature || config.enabled[m.feature]))
     .flatMap(m => m.help)
-  const lines = ['momo 功能列表']
+  const messages = ['momo 功能列表']
   for (const group of ['娱乐互动', '歌曲与写作', '日常互动', '图片管理']) {
     const entries = items.filter(i => i.group === group)
     if (!entries.length) continue
-    lines.push(`\n【${group}】`)
+    const lines = [`【${group}】`]
     for (const entry of entries) {
       const description = typeof entry.description === 'function' ? entry.description(config) : entry.description
       lines.push(`• ${entry.command}：${description}`)
     }
+    messages.push(lines.join('\n'))
   }
-  if (!items.length) lines.push('当前没有已启用的功能。')
-  lines.push('\n部分功能主人可跳过冷却，每日次数限制按各功能规则执行。')
-  return lines.join('\n')
+  if (!items.length) messages.push('当前没有已启用的功能。')
+  messages.push('【使用说明】\n部分功能主人可跳过冷却，每日次数限制按各功能规则执行。\n图片管理指令仅主人可用。主人可在锅巴后台调整功能开关、冷却时间和角色池，保存后对后续消息生效。')
+  return messages
+}
+
+export function getHelpText() {
+  return getHelpMessages().join('\n\n')
 }

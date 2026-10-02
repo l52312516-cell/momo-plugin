@@ -2,11 +2,24 @@ import fs from 'node:fs'
 import path from 'node:path'
 import YAML from 'yaml'
 import { pluginConfig } from './path.js'
+import { validateExtraRoles, validateRolePools } from './reborn.js'
 
 export const featureLabels = {
   battle: '决斗', poke: '戳一戳与图片管理', reborn: '转生', request: '编号点歌',
   songs: '歌曲推荐与查询', wish: '抽签', write: '写作', catRate: '猫娘指数',
   lunch: '今天吃什么', sleep: '早晚安',
+}
+export const featureDescriptions = {
+  battle: '发送「momo决斗 [@对手]」随机对战并统计胜率；不指定对手时与机器人对战，发起冷却可配置。',
+  poke: '戳一戳机器人随机发送本地图片；「#poke上传」带图片、「#poke列表」「#poke删除 序号或文件名」仅主人可用。',
+  reborn: '「momo转生」随机抽取角色，「momo转生记录」查询次数；默认公共池，设置专用群号后该群使用专用池。',
+  request: '「momo点歌 [编号]」返回歌曲链接，不填编号时随机点歌；「momo歌单」查看编号歌单。',
+  songs: '「momo歌曲推荐」「momo歌曲列表」「momo歌曲搜索 歌名」或「momo歌曲查找 歌名」；按完整歌名查询，推荐与成功查询分别计冷却。',
+  wish: '发送「momo抽签」抽取今日运势、幸运物和签文；每人每天一次，主人也受每日限制。',
+  write: '「momo写作 模板词 内容」生成模板文案，内容不含空格；「momo的写作帮助」查看可用模板词。',
+  catRate: '发送「今日猫娘指数」测定指数并比较上次结果；每人每天一次，主人也受每日限制。',
+  lunch: '「今天吃什么」随机推荐菜单；也支持早上吃什么、中午吃什么、晚上吃什么、凌晨吃什么、宵夜吃什么、现在吃什么。',
+  sleep: '仅群聊：「晚安」在北京时间17:00至次日09:00前记录睡眠，「早安」在04:00至11:00前记录起床；排名每天13:00切换，重复早安不累加。',
 }
 export const numberSettings = [
   ['cooldown.battle', '决斗冷却（秒）', 120, 0, 86400],
@@ -21,7 +34,7 @@ export const defaults = {
   enabled: Object.fromEntries(Object.keys(featureLabels).map(key => [key, true])),
   cooldown: { battle: 120, reborn: 75, rebornHistory: 5, songsRecommend: 5, songsSearch: 6, poke: 7 },
   battle: { winframe: 13 },
-  reborn: { privateGroup: '1026237460' },
+  reborn: { privateGroup: '', publicExtra: [], privateExtra: [] },
 }
 const configFile = path.join(pluginConfig, 'momo.yaml')
 const legacyFile = path.join(pluginConfig, 'battle.yaml')
@@ -41,6 +54,8 @@ export function validateConfig(value, base = defaults) {
       if (section === 'enabled') {
         if (typeof raw !== 'boolean') throw new Error(`${key} 必须是开关值`)
         result[section][key] = raw
+      } else if (section === 'reborn' && key !== 'privateGroup') {
+        result[section][key] = validateExtraRoles(raw, key === 'publicExtra' ? '公共池额外角色' : '专用池额外角色')
       } else if (section === 'reborn') {
         const group = String(raw ?? '').trim()
         if (group && !/^\d{5,20}$/.test(group)) throw new Error('转生分流群必须是 5-20 位群号，或留空')
@@ -55,6 +70,10 @@ export function validateConfig(value, base = defaults) {
         result[section][key] = number
       }
     }
+  }
+  const publicNames = new Set(result.reborn.publicExtra.map(role => role.name))
+  for (const role of result.reborn.privateExtra) {
+    if (publicNames.has(role.name)) throw new Error(`专用池已包含公共新增角色，不能重复添加：${role.name}`)
   }
   return result
 }
@@ -91,6 +110,7 @@ export function getConfig() {
 
 export function saveConfig(value) {
   const validated = validateConfig(value, getConfig())
+  validateRolePools(validated.reborn)
   fs.mkdirSync(pluginConfig, { recursive: true })
   const temporary = `${configFile}.${process.pid}.tmp`
   try {

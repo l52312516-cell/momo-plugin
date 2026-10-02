@@ -1,7 +1,5 @@
-import YAML from "yaml"
-import fs from 'node:fs'
 import { getConfig } from "../model/config.js"
-import { pluginResources } from "../model/path.js"
+import { getRolePool } from '../model/reborn.js'
 
 export class momoReborn extends plugin {
     constructor() {
@@ -26,9 +24,10 @@ export class momoReborn extends plugin {
 
     settings(e) {
         const config = getConfig()
-        const special = e.group_id != null && String(e.group_id) === config.reborn.privateGroup
+        const special = Boolean(config.reborn.privateGroup) && e.group_id != null && String(e.group_id) === config.reborn.privateGroup
         return {
             config,
+            special,
             file: special ? 'reborn.yaml' : 'preborn.yaml',
             prefix: special ? 'momo' : 'pmomo',
             scope: special ? `${e.user_id}` : `${e.group_id}:${e.user_id}`,
@@ -36,11 +35,12 @@ export class momoReborn extends plugin {
     }
 
     async momoReborn(e) {
-        const { config, file, prefix, scope } = this.settings(e)
+        const { config, special, prefix, scope } = this.settings(e)
         let RebornDic
 
         try {
-            RebornDic = YAML.parse(fs.readFileSync(`${pluginResources}/yaml/${file}`, 'utf-8'))
+            RebornDic = getRolePool(config.reborn, special)
+            if (!Object.keys(RebornDic).length) throw new Error('角色池为空')
         } catch (err) {
             console.error("YAML 读取失败:", err)
             await e.reply("模板文件读取失败，请联系主人检查配置喵~", true)
@@ -102,7 +102,7 @@ export class momoReborn extends plugin {
     }
 
     async RebornHistory(e) {
-        const { config, file, prefix, scope } = this.settings(e)
+        const { config, special, prefix, scope } = this.settings(e)
         let nowtime = new Date()
 
         let moreb_time = await redis.get(`Yunzai:${prefix}Rebornti:${scope}_history`)
@@ -118,7 +118,7 @@ export class momoReborn extends plugin {
         let RebornDic
 
         try {
-            RebornDic = YAML.parse(fs.readFileSync(`${pluginResources}/yaml/${file}`, 'utf-8'))
+            RebornDic = getRolePool(config.reborn, special)
         } catch (err) {
             console.error("YAML 读取失败:", err)
             await e.reply("模板文件读取失败，请联系主人检查配置喵~", true)
