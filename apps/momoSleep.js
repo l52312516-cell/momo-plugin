@@ -1,8 +1,7 @@
-import { beijingTime, claimWakeRank, ensureSleepRankResetTimer, nextSleepRank, readSleepTime } from '../model/sleep.js'
+import { beijingTime, claimWakeRank, nextSleepRank, readSleepTime, resetSleepRanks } from '../model/sleep.js'
 
 export class momoSleep extends plugin {
   constructor() {
-    ensureSleepRankResetTimer()
     super({
       name: 'momo每日早晚安', dsc: '记录群友睡眠情况', event: 'message.group', priority: 985,
       rule: [
@@ -10,6 +9,27 @@ export class momoSleep extends plugin {
         { reg: '^(早安|早|起床|醒了|我醒了|早上好)$', fnc: 'GetUp' },
       ],
     })
+    this.scheduleDailyReset()
+  }
+
+  scheduleDailyReset() {
+    const now = new Date()
+    const nextReset = new Date()
+    nextReset.setHours(13, 0, 0, 0)
+    if (now.getHours() >= 13) nextReset.setDate(nextReset.getDate() + 1)
+
+    const reset = async () => {
+      await resetSleepRanks()
+      await redis.set('Yunzai:DailyResetDate', new Date().toDateString())
+      logger.info(`[每日早晚安] 定时重置执行：${new Date().toLocaleString()}`)
+    }
+    const timer = setTimeout(async () => {
+      await reset()
+      const interval = setInterval(reset, 24 * 60 * 60 * 1000)
+      interval.unref?.()
+    }, nextReset - now)
+    timer.unref?.()
+    logger.info(`[每日早晚安] 下次重置时间：${nextReset.toLocaleString()}`)
   }
 
   async NightDream(e) {
