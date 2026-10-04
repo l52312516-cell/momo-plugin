@@ -1,12 +1,14 @@
 const TTL = 7 * 24 * 60 * 60
 const HOUR = 60 * 60 * 1000
+const DAY = 24 * HOUR
+const resetTimerKey = Symbol.for('momo-plugin.sleepRankResetTimer')
 
 export function beijingTime(now = Date.now()) {
   const date = new Date(Number(now) + 8 * HOUR)
   return {
     hour: date.getUTCHours(),
     clock: date.toISOString().slice(11, 19),
-    // 北京时间 13:00 是周期边界；无需定时器或扫描旧排名。
+    // 北京时间 13:00 是周期边界；排名键同时按周期隔离，定时清理负责回收旧键。
     period: new Date(Number(now) + (8 - 13) * HOUR).toISOString().slice(0, 10),
   }
 }
@@ -32,6 +34,38 @@ export async function nextSleepRank(groupId, period) {
   const key = `Yunzai:momoSleep:${groupId}:${period}:sleep`
   const [rank] = await redis.multi().incr(key).expire(key, TTL).exec()
   return rank
+}
+
+export async function resetSleepRanks(period = beijingTime().period) {
+  const keys = await redis.keys('Yunzai:momoSleep:*')
+  for (const key of keys) {
+    if (!key.includes(`:${period}:`)) await redis.del(key)
+  }
+}
+
+function scheduleNextSleepRankReset() {
+  const now = Date.now()
+  const beijing = new Date(now + 8 * HOUR)
+  let next = Date.UTC(beijing.getUTCFullYear(), beijing.getUTCMonth(), beijing.getUTCDate(), 13) - 8 * HOUR
+  if (next <= now) next += DAY
+
+  const state = globalThis[resetTimerKey]
+  state.timer = setTimeout(async () => {
+    try {
+      await resetSleepRanks()
+    } catch (error) {
+      logger.error(`[momo] 早晚安排名定时重置失败：${error}`)
+    } finally {
+      scheduleNextSleepRankReset()
+    }
+  }, next - now)
+  state.timer.unref?.()
+}
+
+export function ensureSleepRankResetTimer() {
+  if (globalThis[resetTimerKey]) return
+  globalThis[resetTimerKey] = { timer: null }
+  scheduleNextSleepRankReset()
 }
 
 export function readSleepTime(value) {

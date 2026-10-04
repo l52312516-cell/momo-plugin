@@ -1,7 +1,8 @@
-import { beijingTime, claimWakeRank, nextSleepRank, readSleepTime } from '../model/sleep.js'
+import { beijingTime, claimWakeRank, ensureSleepRankResetTimer, nextSleepRank, readSleepTime } from '../model/sleep.js'
 
 export class momoSleep extends plugin {
   constructor() {
+    ensureSleepRankResetTimer()
     super({
       name: 'momo每日早晚安', dsc: '记录群友睡眠情况', event: 'message.group', priority: 985,
       rule: [
